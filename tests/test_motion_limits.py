@@ -1,66 +1,72 @@
 
+"""Tests for motion speed and duration validation."""
+
+import math
+
 import pytest
 
-from rover.control.limits import MotionLimits, limit_motion
+from rover.control.limits import (
+    MAX_DURATION_S,
+    MAX_SPEED,
+    MIN_SPEED,
+    validate_duration,
+    validate_speed,
+)
 
 
-def test_motion_within_limits_is_unchanged():
-    limits = MotionLimits(
-        max_linear_velocity=1.0,
-        max_angular_velocity=2.0,
-    )
-
-    request = limit_motion(0.5, 1.0, limits)
-
-    assert request.linear_velocity == 0.5
-    assert request.angular_velocity == 1.0
+@pytest.mark.parametrize("speed", [0.0, 0.25, 0.5, 1.0])
+def test_accepts_valid_speeds(speed):
+    assert validate_speed(speed) == speed
 
 
-def test_positive_velocities_are_clamped():
-    limits = MotionLimits(1.0, 2.0)
-
-    request = limit_motion(3.0, 5.0, limits)
-
-    assert request.linear_velocity == 1.0
-    assert request.angular_velocity == 2.0
+@pytest.mark.parametrize("speed", [-0.01, 1.01])
+def test_rejects_out_of_range_speeds(speed):
+    with pytest.raises(ValueError):
+        validate_speed(speed)
 
 
-def test_negative_velocities_are_clamped():
-    limits = MotionLimits(1.0, 2.0)
-
-    request = limit_motion(-3.0, -5.0, limits)
-
-    assert request.linear_velocity == -1.0
-    assert request.angular_velocity == -2.0
+@pytest.mark.parametrize("speed", [math.nan, math.inf, -math.inf])
+def test_rejects_non_finite_speeds(speed):
+    with pytest.raises(ValueError, match="finite"):
+        validate_speed(speed)
 
 
-def test_zero_velocity_is_preserved():
-    limits = MotionLimits(1.0, 2.0)
+@pytest.mark.parametrize("speed", [True, False, "0.5", None])
+def test_rejects_non_numeric_speeds(speed):
+    with pytest.raises(ValueError, match="number"):
+        validate_speed(speed)
 
-    request = limit_motion(0.0, 0.0, limits)
 
-    assert request.linear_velocity == 0.0
-    assert request.angular_velocity == 0.0
+@pytest.mark.parametrize("duration", [0.01, 0.5, 1.0, MAX_DURATION_S])
+def test_accepts_valid_durations(duration):
+    assert validate_duration(duration) == duration
+
+
+@pytest.mark.parametrize("duration", [0.0, -0.1, MAX_DURATION_S + 0.01])
+def test_rejects_out_of_range_durations(duration):
+    with pytest.raises(ValueError):
+        validate_duration(duration)
 
 
 @pytest.mark.parametrize(
-    ("linear", "angular"),
-    [(0.5, -1.0), (-0.5, 1.0), (1.0, 2.0)],
+    "duration",
+    [math.nan, math.inf, -math.inf],
 )
-def test_boundary_and_mixed_requests(linear, angular):
-    limits = MotionLimits(1.0, 2.0)
-
-    request = limit_motion(linear, angular, limits)
-
-    assert -1.0 <= request.linear_velocity <= 1.0
-    assert -2.0 <= request.angular_velocity <= 2.0
+def test_rejects_non_finite_durations(duration):
+    with pytest.raises(ValueError, match="finite"):
+        validate_duration(duration)
 
 
-def test_zero_linear_limit_is_rejected():
-    with pytest.raises(ValueError, match="linear velocity"):
-        MotionLimits(0.0, 2.0)
+@pytest.mark.parametrize("duration", [True, False, "1.0", None])
+def test_rejects_non_numeric_durations(duration):
+    with pytest.raises(ValueError, match="number"):
+        validate_duration(duration)
 
 
-def test_negative_angular_limit_is_rejected():
-    with pytest.raises(ValueError, match="angular velocity"):
-        MotionLimits(1.0, -2.0)
+def test_speed_lower_and_upper_bounds():
+    assert validate_speed(MIN_SPEED) == MIN_SPEED
+    assert validate_speed(MAX_SPEED) == MAX_SPEED
+
+
+def test_duration_upper_bound():
+    assert validate_duration(MAX_DURATION_S) == MAX_DURATION_S
