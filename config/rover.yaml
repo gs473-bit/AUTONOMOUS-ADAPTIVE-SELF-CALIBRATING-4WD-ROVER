@@ -1,0 +1,34 @@
+
+project: ECE357 Autonomous Adaptive Self-Calibrating 4WD Rover
+
+compute:
+  platform: Raspberry Pi 4B
+  os_release: null
+
+camera:
+  model: null
+  interface: null
+
+motor_driver:
+  model: L298N
+  board_count_target: 2
+  verified: false
+
+motors:
+  count_target: 4
+  rated_voltage_v: null
+
+encoders:
+  type: null
+  counts_per_wheel_revolution: null
+
+sensors:
+  ultrasonic_model: HC-SR04
+  imu_model: MPU6050
+
+power:
+  battery_model: null
+  nominal_voltage_v: null
+
+safety:
+  physical_estop_verified: false
