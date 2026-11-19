@@ -121,7 +121,7 @@ class CommandDispatcher:
             with self._lock:
                 self._cancel_timer()
                 self._motor.stop()
-            return DispatchResult(False, decision.reason)
+            return DispatchResult(False, decision.reason.rstrip("."))
 
 
 

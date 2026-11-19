@@ -1,48 +1,18 @@
+# AETHER-X 01 Hardware Inventory (revised, purchase verification pending)
 
-# Rover Hardware Inventory
+| Part | Intended quantity | Model | Status |
+|---|---:|---|---|
+| Raspberry Pi | 1 | 4B, RAM TODO | Board availability must be confirmed |
+| STM32 MCU | 1 | BlackPill, exact chip TODO | Firmware target TODO |
+| Motor drivers | 4 | DRV8876 carrier, PCB version TODO | Actual carriers TODO |
+| Geared DC motors | 4 | 25GA370-26, ratings TODO | Encoder availability TODO |
+| Mecanum wheels | 4 | roller orientation and effective dimensions TODO | Inspect printed wheels |
+| IMU | 1 | MPU6050 carrier, address TODO | Not tested |
+| Ultrasonic | TODO | HC-SR04 | Not tested |
+| Camera | 1 | Pi Camera exact model TODO | Not tested |
+| Battery | 1 | 3S2P Li-ion candidate; BMS/rating TODO | Not tested |
+| Pi buck converter | 1 | Regulated 5.1 V, amps TODO | Not tested |
+| STM32 regulator | 1 | Board-approved supply TODO | Not tested |
+| Fuse and physical E-stop | TODO | Rated after current calculation | Not tested |
 
-**Project:** ECE357 Autonomous Adaptive Self-Calibrating 4WD Rover  
-**Team:** Group 19  
-**Computing platform:** Raspberry Pi 4B
-
-## 1. Hardware Inventory
-
-| Component | Required Quantity | Exact Model | Availability | Verified |
-|---|---:|---|---|---|
-| Raspberry Pi 4B | 1 | To confirm | Shared access reported | No |
-| Camera module | 1 | To confirm | Unknown | No |
-| L298N motor driver | 2 | To confirm | To confirm | No |
-| DC gear motors | 4 | To confirm | Unknown | No |
-| Wheel encoders | 4 channels | To confirm | Unknown | No |
-| HC-SR04 ultrasonic sensor | To confirm | To confirm | To confirm | No |
-| MPU6050 IMU | 1 | To confirm | To confirm | No |
-| Battery | 1 | To confirm | Unknown | No |
-| Voltage regulator | 1 | To confirm | Unknown | No |
-| Physical emergency stop | 1 | To confirm | Unknown | No |
-
-## 2. Datasheets
-
-Record the official datasheet link for every component after identifying its exact model.
-
-| Component | Datasheet Link | Electrical Limits Checked |
-|---|---|---|
-| Camera | Pending | No |
-| Motor driver | Pending | No |
-| Motors | Pending | No |
-| Encoders | Pending | No |
-| Battery and regulator | Pending | No |
-
-## 3. Safety Verification
-
-- [ ] Confirm motor voltage and current requirements.
-- [ ] Verify motor driver current and thermal limits.
-- [ ] Verify all Raspberry Pi GPIO signal voltage levels.
-- [ ] Confirm battery polarity and regulated supply voltages.
-- [ ] Review the physical emergency-stop circuit.
-- [ ] Obtain lab supervisor approval before powered motor testing.
-
-## 4. Build Notes
-
-Record actual component labels, photographs, measurements, and outstanding issues here.
-
-**Status:** Initial inventory template. Hardware availability and compatibility have not yet been fully verified.
+No line here certifies actual availability or electrical compatibility. Record model photos and datasheet URLs before powering anything.
