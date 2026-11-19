@@ -68,19 +68,19 @@ class CommandDispatcher:
         speed = command.speed
 
         if command.action == NavigationAction.MOVE_FORWARD:
-            left, right = speed, speed
+            fl, fr, rl, rr = speed, speed, speed, speed
         elif command.action == NavigationAction.MOVE_BACKWARD:
-            left, right = -speed, -speed
+            fl, fr, rl, rr = -speed, -speed, -speed, -speed
         elif command.action == NavigationAction.TURN_LEFT:
-            left, right = -speed, speed
+            fl, fr, rl, rr = -speed, speed, -speed, speed
         elif command.action == NavigationAction.TURN_RIGHT:
-            left, right = speed, -speed
+            fl, fr, rl, rr = speed, -speed, speed, -speed
         else:
             self._motor.stop()
             return DispatchResult(False, "Unsupported navigation action")
 
         try:
-            self._motor.set_wheel_speeds(left, right)
+            self._motor.set_wheel_speeds(fl, fr, rl, rr)
         except Exception:
             try:
                 self._motor.stop()

@@ -13,17 +13,14 @@ class DummyMotor(MotorInterface):
     """Record motor requests without energizing physical motors."""
 
     def __init__(self):
-        self.left_speed = 0.0
-        self.right_speed = 0.0
+        self.fl = self.fr = self.rl = self.rr = 0.0
         self.stop_calls = 0
 
-    def set_wheel_speeds(self, left_speed, right_speed):
-        self.left_speed = left_speed
-        self.right_speed = right_speed
+    def set_wheel_speeds(self, fl, fr, rl, rr):
+        self.fl, self.fr, self.rl, self.rr = fl, fr, rl, rr
 
     def stop(self):
-        self.left_speed = 0.0
-        self.right_speed = 0.0
+        self.fl = self.fr = self.rl = self.rr = 0.0
         self.stop_calls += 1
 
     def close(self):
@@ -51,8 +48,8 @@ def test_movement_is_rejected_by_default():
 
     assert result.accepted is False
     assert result.reason == "Emergency stop is active"
-    assert motor.left_speed == 0.0
-    assert motor.right_speed == 0.0
+    assert motor.fl == 0.0
+    assert motor.fr == 0.0
 
 
 def test_stop_command_is_accepted_during_emergency_stop():
@@ -74,8 +71,8 @@ def test_forward_command_sets_equal_positive_wheel_speeds():
     )
 
     assert result.accepted is True
-    assert motor.left_speed == 0.4
-    assert motor.right_speed == 0.4
+    assert motor.fl == 0.4
+    assert motor.fr == 0.4
 
 
 def test_backward_command_sets_equal_negative_wheel_speeds():
@@ -91,8 +88,8 @@ def test_backward_command_sets_equal_negative_wheel_speeds():
     )
 
     assert result.accepted is True
-    assert motor.left_speed == -0.3
-    assert motor.right_speed == -0.3
+    assert motor.fl == -0.3
+    assert motor.fr == -0.3
 
 
 def test_left_turn_uses_opposite_wheel_directions():
@@ -108,8 +105,8 @@ def test_left_turn_uses_opposite_wheel_directions():
     )
 
     assert result.accepted is True
-    assert motor.left_speed == -0.25
-    assert motor.right_speed == 0.25
+    assert motor.fl == -0.25
+    assert motor.fr == 0.25
 
 
 def test_right_turn_uses_opposite_wheel_directions():
@@ -125,8 +122,8 @@ def test_right_turn_uses_opposite_wheel_directions():
     )
 
     assert result.accepted is True
-    assert motor.left_speed == 0.25
-    assert motor.right_speed == -0.25
+    assert motor.fl == 0.25
+    assert motor.fr == -0.25
 
 
 def test_reactivating_emergency_stop_requests_motor_stop():
@@ -139,8 +136,8 @@ def test_reactivating_emergency_stop_requests_motor_stop():
     dispatcher.set_emergency_stop(True)
 
     assert dispatcher.emergency_stop_active is True
-    assert motor.left_speed == 0.0
-    assert motor.right_speed == 0.0
+    assert motor.fl == 0.0
+    assert motor.fr == 0.0
 
 
 def test_invalid_command_type_is_rejected():
@@ -154,7 +151,7 @@ def test_invalid_command_type_is_rejected():
 
 def test_motor_exception_is_reported_as_failure():
     class FailingMotor(DummyMotor):
-        def set_wheel_speeds(self, left_speed, right_speed):
+        def set_wheel_speeds(self, fl, fr, rl, rr):
             raise RuntimeError("Simulated motor failure")
 
     motor = FailingMotor()
@@ -167,5 +164,5 @@ def test_motor_exception_is_reported_as_failure():
 
     assert result.accepted is False
     assert result.reason == "Motor command failed"
-    assert motor.left_speed == 0.0
-    assert motor.right_speed == 0.0
+    assert motor.fl == 0.0
+    assert motor.fr == 0.0
