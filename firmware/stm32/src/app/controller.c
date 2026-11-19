@@ -63,7 +63,7 @@ static void status_packet(void){
  p.length=59u;/* 4 wheel float + 4 tick int + battery float + 4 currents float
                * + state uint8 + fault uint32 + RC uint8 + valid mask uint8 */
  memset(p.payload,0,p.length);
- if(hw_ready && adc.valid){
+ if(hw_ready && adc.valid && encoder[0].valid && encoder[1].valid && encoder[2].valid && encoder[3].valid){
   for(unsigned i=0;i<4u;i++){
     put_float(&p.payload[4u*i],encoder[i].rad_s);
     put_u32(&p.payload[16u+4u*i],(uint32_t)encoder[i].total_ticks);
@@ -181,7 +181,8 @@ void controller_tick(uint32_t now){
   }
  }
  if(now!=last_tick){
-  if(!watchdog_healthy_loop(&loop_watchdog,now))faults_report(&faults,FAULT_CONFIGURATION,now);
+  const int healthy_loop=watchdog_healthy_loop(&loop_watchdog,now);
+  if(!healthy_loop)faults_report(&faults,FAULT_CONFIGURATION,now);
   last_tick=now;
   if(hw_ready){
     const int closed=actuation_hw_estop_nc_closed();
@@ -220,7 +221,7 @@ void controller_tick(uint32_t now){
   }
   failsafe_tick(&safety,now);
   if(!safety.outputs_enabled)actuation_hw_disable_all();
-  if(hw_ready && !faults.active_flags)(void)iwdg_hw_feed();
+  if(hw_ready && healthy_loop)(void)iwdg_hw_feed();
   if(safety.state==STATE_ARMED || safety.state==STATE_RUNNING){
     /* actuation disabled in compile-time config; outputs stay unconfigured */
     if(!AETHER_ACTUATION_ENABLED)failsafe_disarm(&safety);
