@@ -29,7 +29,8 @@ Bad CRC, length and sequence packets are rejected and counted, **never refresh s
 | 0x83 NACK | STM32→Pi | uint16 acknowledged sequence, uint8 reason |
 | 0x84 FAULT_LOG | STM32→Pi | uint8 count, then repeated uint16 fault + uint32 ms |
 
-Telemetry v1 fields in order: float32 wheel_rps[4], int32 encoder_ticks[4], float32 gyro_rad_s[3], float32 accel_m_s2[3], float32 ranges_m[3], float32 battery_v, float32 motor_current_a[4], uint8 state, uint32 fault_flags, uint8 rc_state, uint32 rx_crc_errors, uint32 rx_sequence_errors.
-All sensor fields must be explicitly invalid in accompanying validity masks or NaN until measured. Hardware interface not yet complete.
+Telemetry v1 (59 bytes): wheel rad/s float32[4] (16 bytes); signed encoder ticks int32[4] (16); battery_v float32 (4); currents float32[4] (16); state uint8 (1); fault flags uint32 (4); rc state uint8 (1); validity mask uint8 (1). **Telemetry is not emitted until verified HAL UART transport is implemented.** No IMU or ultrasonic are sent because those are Pi sensors.
 
-Timing: host sends HEARTBEAT or DRIVE at >=20 Hz. **No valid frame for 200 ms ⇒ stop/disable outputs**. A valid STOP never authorizes rearming. Physical motor-power E-stop is independent of software.
+ACK: uint16 reference sequence. NACK: uint16 reference sequence + uint8 reason (1 CRC, 2 malformed, 3 sequence, 4 unsafe, 5 unsupported).
+
+Any packet with a sequence gap is rejected (except STOP and DISARM, which re-synchronize). Heartbeat or drive must occur within 200ms or the STM32 must disarm; this must be enforced locally even if the Pi crashes. Hardware UART and output interlocks remain unverified.

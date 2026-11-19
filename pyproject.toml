@@ -10,6 +10,7 @@ description = "Autonomous adaptive self-calibrating 4WD rover"
 requires-python = ">=3.10"
 dependencies = [
     "PyYAML>=6.0",
+    "pyserial>=3.5",
 ]
 
 [project.optional-dependencies]
