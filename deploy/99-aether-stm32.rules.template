@@ -1,0 +1,3 @@
+# DO NOT install unchanged. Replace the value with your actual ST-LINK USB serial.
+# Inspect: udevadm info -q property -n /dev/ttyACM0 | grep -E 'ID_SERIAL_SHORT|ID_VENDOR_ID'
+SUBSYSTEM=="tty", KERNEL=="ttyACM*", ATTRS{idVendor}=="0483", ENV{ID_SERIAL_SHORT}=="REPLACE_WITH_ACTUAL_STLINK_SERIAL", SYMLINK+="aether_stm32", GROUP="dialout", MODE="0660"
