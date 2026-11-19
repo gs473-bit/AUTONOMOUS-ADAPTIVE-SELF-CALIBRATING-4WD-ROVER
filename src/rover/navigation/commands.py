@@ -3,6 +3,8 @@
 
 from dataclasses import dataclass
 from enum import Enum
+import math
+from rover.control.limits import MAX_DURATION_S
 
 
 class NavigationAction(str, Enum):
@@ -24,19 +26,25 @@ class NavigationCommand:
     duration_s: float = 0.0
 
     def __post_init__(self) -> None:
-        """Reject invalid commands before they reach control code."""
         if not isinstance(self.action, NavigationAction):
             raise ValueError("action must be a NavigationAction")
-
+        if isinstance(self.speed, bool) or not isinstance(self.speed, (int, float)) or not math.isfinite(self.speed):
+            raise ValueError("speed must be a finite number")
         if not 0.0 <= self.speed <= 1.0:
             raise ValueError("speed must be between 0.0 and 1.0")
-
+        if isinstance(self.duration_s, bool) or not isinstance(self.duration_s, (int, float)) or not math.isfinite(self.duration_s):
+            raise ValueError("duration_s must be a finite number")
         if self.duration_s < 0.0:
             raise ValueError("duration_s cannot be negative")
-
+        if self.duration_s > MAX_DURATION_S:
+            raise ValueError("duration_s exceeds maximum duration")
         if self.action == NavigationAction.STOP:
             if self.speed != 0.0:
                 raise ValueError("STOP commands must have zero speed")
+            if self.duration_s != 0.0:
+                raise ValueError("STOP commands must have zero duration")
+        elif self.duration_s == 0.0:
+            raise ValueError("Movement duration must be greater than zero")
 
     @classmethod
     def stop(cls) -> "NavigationCommand":

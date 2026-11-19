@@ -46,4 +46,4 @@ def test_validate_config_empty():
 
 
 def test_validate_config_nonempty():
-    assert validate_config({"rover": {"name": "test"}}) == []
+    assert "Missing required key: project" in validate_config({"rover": {"name": "test"}})
