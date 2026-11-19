@@ -17,7 +17,7 @@ int failsafe_arm(failsafe_t *s,uint32_t now){
 int failsafe_drive(failsafe_t *s,uint32_t now){
  if(!s || (s->state!=STATE_ARMED && s->state!=STATE_RUNNING) ||
     (uint32_t)(now-s->last_valid_ms)>=AETHER_TIMEOUT_MS || (s->rc_active && !s->rc_signal_valid))return 0;
- s->state=STATE_RUNNING;s->outputs_enabled=1u;s->last_valid_ms=now;return 1;
+ s->state=STATE_RUNNING;s->outputs_enabled=1u;s->last_drive_ms=now;s->last_valid_ms=now;return 1;
 }
 void failsafe_disarm(failsafe_t *s){
  if(!s)return;
@@ -40,5 +40,6 @@ void failsafe_tick(failsafe_t *s,uint32_t now){
  if(s->fault_flags){failsafe_fault(s,s->fault_flags);return;}
  if((s->state==STATE_ARMED || s->state==STATE_RUNNING) &&
     (!s->heartbeat_seen || (uint32_t)(now-s->last_valid_ms)>=AETHER_TIMEOUT_MS ||
+     (s->state==STATE_RUNNING && (uint32_t)(now-s->last_drive_ms)>=AETHER_TIMEOUT_MS) ||
      (s->rc_active && !s->rc_signal_valid))) failsafe_disarm(s);
 }
