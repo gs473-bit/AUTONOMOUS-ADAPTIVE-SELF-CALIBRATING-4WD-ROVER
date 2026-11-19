@@ -1,10 +1,11 @@
-#include "config.h"
 #include "hal_port/board.h"
-/* Safe bootstrap; later modules can schedule logic but may never bypass the
- * compile-time actuation interlock while real wiring remains unverified. */
+#include "app/controller.h"
+/* No motor GPIO/PWM configuration in the unverified build. */
 int main(void) {
     board_boot();
+    controller_init();
     for (;;) {
+        controller_tick(board_millis());
         board_idle();
     }
 }
