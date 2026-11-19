@@ -1,9 +1,7 @@
-#include "stm32f4xx_hal.h"
+#include "stm32f3xx_hal.h"
 #include "config.h"
-/* Safe bootstrap: no user motor GPIO initialization or PWM enabled. */
+/* Bootloader-safe no-motion bootstrap while actual wiring and thresholds are TODO. */
 int main(void) {
     HAL_Init();
-    while (1) {
-        HAL_Delay(100);
-    }
+    for (;;) HAL_Delay(1u);
 }
