@@ -1,7 +1,10 @@
-#include "stm32f3xx_hal.h"
 #include "config.h"
-/* Bootloader-safe no-motion bootstrap while actual wiring and thresholds are TODO. */
+#include "hal_port/board.h"
+/* Safe bootstrap; later modules can schedule logic but may never bypass the
+ * compile-time actuation interlock while real wiring remains unverified. */
 int main(void) {
-    HAL_Init();
-    for (;;) HAL_Delay(1u);
+    board_boot();
+    for (;;) {
+        board_idle();
+    }
 }
