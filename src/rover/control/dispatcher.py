@@ -7,6 +7,7 @@ import threading
 import time
 
 from rover.control.motor_interface import MotorInterface
+from rover.safety import evaluate_safety
 from rover.navigation.commands import NavigationAction, NavigationCommand
 
 
@@ -28,6 +29,9 @@ class CommandDispatcher:
     def __init__(self, motor: MotorInterface, *, clock=None, timer_factory=None) -> None:
         self._motor = motor
         self._emergency_stop_active = True
+        self._fault_active = False
+        self._required_sensors_valid = True
+        self._max_command_age = 0.2
         self._clock = clock or time.monotonic
         self._timer_factory = timer_factory or threading.Timer
         self._timer = None
@@ -74,7 +78,21 @@ class CommandDispatcher:
                 self._cancel_timer()
                 self._motor.stop()
 
-    def dispatch(self, command: NavigationCommand) -> DispatchResult:
+    def set_fault(self, active: bool):
+        self._fault_active = bool(active)
+        if self._fault_active:
+            with self._lock:
+                self._cancel_timer()
+                self._motor.stop()
+
+    def set_required_sensors_valid(self, valid: bool):
+        self._required_sensors_valid = bool(valid)
+        if not valid:
+            with self._lock:
+                self._cancel_timer()
+                self._motor.stop()
+
+    def dispatch(self, command: NavigationCommand, *, command_timestamp=None, now=None) -> DispatchResult:
         """Validate a command and forward permitted requests."""
         if not isinstance(command, NavigationCommand):
             return DispatchResult(False, "Invalid command type")
@@ -85,9 +103,27 @@ class CommandDispatcher:
                 self._motor.stop()
             return DispatchResult(True, "Stop command accepted")
 
-        if self._emergency_stop_active:
-            self._motor.stop()
-            return DispatchResult(False, "Emergency stop is active")
+        current_time = self._clock() if now is None else now
+        timestamp = current_time if command_timestamp is None else command_timestamp
+        if self._fault_active:
+            with self._lock:
+                self._cancel_timer()
+                self._motor.stop()
+            return DispatchResult(False, "Motor fault active")
+        decision = evaluate_safety(
+            emergency_stop_active=self._emergency_stop_active,
+            command_timestamp=timestamp,
+            now=current_time,
+            max_command_age=self._max_command_age,
+            required_sensors_valid=self._required_sensors_valid,
+        )
+        if not decision.permitted:
+            with self._lock:
+                self._cancel_timer()
+                self._motor.stop()
+            return DispatchResult(False, decision.reason)
+
+
 
         if (
             not math.isfinite(command.speed)
