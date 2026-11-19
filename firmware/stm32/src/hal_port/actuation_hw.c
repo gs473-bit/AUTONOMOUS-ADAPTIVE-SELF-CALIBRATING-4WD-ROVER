@@ -6,6 +6,7 @@
 static TIM_HandleTypeDef timers[4]; /* TIM2,TIM3,TIM4,TIM8 */
 static TIM_HandleTypeDef pwm_a,pwm_b; /* TIM1 three channels, TIM17 fourth */
 static uint8_t configured;
+static volatile uint8_t irq_fault_mask,irq_estop_open;
 static const struct {GPIO_TypeDef *port;uint16_t pin;} dirs[4]={
  {GPIOC,GPIO_PIN_8},{GPIOC,GPIO_PIN_9},{GPIOC,GPIO_PIN_10},{GPIOC,GPIO_PIN_11}
 };
@@ -15,6 +16,16 @@ static const struct {GPIO_TypeDef *port;uint16_t pin;} sleeps[4]={
 static const struct {GPIO_TypeDef *port;uint16_t pin;} faults[4]={
  {GPIOC,GPIO_PIN_4},{GPIOC,GPIO_PIN_5},{GPIOB,GPIO_PIN_10},{GPIOB,GPIO_PIN_8}
 };
+void HAL_GPIO_EXTI_Callback(uint16_t pin){
+ if(pin==GPIO_PIN_4)irq_fault_mask|=1u;
+ if(pin==GPIO_PIN_5)irq_fault_mask|=2u;
+ if(pin==GPIO_PIN_10)irq_fault_mask|=4u;
+ if(pin==GPIO_PIN_8)irq_fault_mask|=8u;
+ if(pin==GPIO_PIN_13)irq_estop_open=1u;
+}
+void EXTI4_IRQHandler(void){HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_4);}
+void EXTI9_5_IRQHandler(void){HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_5);HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_8);}
+void EXTI15_10_IRQHandler(void){HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_10);HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_13);}
 static void configure_gpio(GPIO_TypeDef *port,uint16_t pins,uint32_t mode,uint32_t pull,uint32_t af){
  GPIO_InitTypeDef io={0};io.Pin=pins;io.Mode=mode;io.Pull=pull;
  io.Speed=GPIO_SPEED_FREQ_HIGH;io.Alternate=af;HAL_GPIO_Init(port,&io);
@@ -65,7 +76,7 @@ void actuation_hw_disable_all(void){
  for(unsigned i=0;i<4u;i++){output_pwm(i,0.0f);output_sleep(i,0);}
 }
 int actuation_hw_init(void){
- configured=0u;
+ configured=0u;irq_fault_mask=0u;irq_estop_open=0u;
  if(!AETHER_ACTUATION_ENABLED || !AETHER_PINMAP_VERIFIED)return 0;
  __HAL_RCC_GPIOA_CLK_ENABLE();__HAL_RCC_GPIOB_CLK_ENABLE();__HAL_RCC_GPIOC_CLK_ENABLE();
  __HAL_RCC_TIM1_CLK_ENABLE();__HAL_RCC_TIM2_CLK_ENABLE();__HAL_RCC_TIM3_CLK_ENABLE();
@@ -76,9 +87,12 @@ int actuation_hw_init(void){
   configure_gpio(sleeps[i].port,sleeps[i].pin,GPIO_MODE_OUTPUT_PP,GPIO_PULLDOWN,0u);
   HAL_GPIO_WritePin(dirs[i].port,dirs[i].pin,GPIO_PIN_RESET);
   configure_gpio(dirs[i].port,dirs[i].pin,GPIO_MODE_OUTPUT_PP,GPIO_NOPULL,0u);
-  configure_gpio(faults[i].port,faults[i].pin,GPIO_MODE_INPUT,GPIO_PULLUP,0u);
+  configure_gpio(faults[i].port,faults[i].pin,GPIO_MODE_IT_FALLING,GPIO_PULLUP,0u);
  }
- configure_gpio(GPIOB,GPIO_PIN_13,GPIO_MODE_INPUT,GPIO_PULLUP,0u);/* NC to GND */
+ configure_gpio(GPIOB,GPIO_PIN_13,GPIO_MODE_IT_RISING,GPIO_PULLUP,0u);
+ HAL_NVIC_SetPriority(EXTI4_IRQn,0u,0u);HAL_NVIC_EnableIRQ(EXTI4_IRQn);
+ HAL_NVIC_SetPriority(EXTI9_5_IRQn,0u,0u);HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
+ HAL_NVIC_SetPriority(EXTI15_10_IRQn,0u,0u);HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);/* NC to GND */
  configure_gpio(GPIOA,GPIO_PIN_0|GPIO_PIN_1,GPIO_MODE_AF_PP,GPIO_PULLUP,GPIO_AF1_TIM2);
  configure_gpio(GPIOA,GPIO_PIN_6|GPIO_PIN_7,GPIO_MODE_AF_PP,GPIO_PULLUP,GPIO_AF2_TIM3);
  configure_gpio(GPIOB,GPIO_PIN_6|GPIO_PIN_7,GPIO_MODE_AF_PP,GPIO_PULLUP,GPIO_AF2_TIM4);
@@ -96,8 +110,8 @@ uint32_t actuation_hw_encoder_counter(unsigned wheel){
  return configured && wheel<4u ? __HAL_TIM_GET_COUNTER(&timers[wheel]):0u;
 }
 int actuation_hw_estop_nc_closed(void){
- return configured && HAL_GPIO_ReadPin(GPIOB,GPIO_PIN_13)==GPIO_PIN_RESET;
+ return configured && !irq_estop_open && HAL_GPIO_ReadPin(GPIOB,GPIO_PIN_13)==GPIO_PIN_RESET;
 }
 int actuation_hw_fault_active(unsigned wheel){
- return !configured || wheel>=4u || HAL_GPIO_ReadPin(faults[wheel].port,faults[wheel].pin)==GPIO_PIN_RESET;
+ return !configured || wheel>=4u || (irq_fault_mask & (1u<<wheel)) || HAL_GPIO_ReadPin(faults[wheel].port,faults[wheel].pin)==GPIO_PIN_RESET;
 }

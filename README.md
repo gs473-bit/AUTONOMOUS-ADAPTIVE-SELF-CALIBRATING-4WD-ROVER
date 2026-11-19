@@ -1,3 +1,14 @@
+# AETHER-X 01 — Pi/Nucleo split architecture (current development branch)
+
+**Safety:** The STM32 motor outputs remain compile-disabled and unverified on hardware. Do not wire or power motors based on build/CI success.
+
+- **Nucleo-F303RE:** `firmware/stm32` uses PlatformIO/STM32Cube HAL, four encoder timer candidates (TIM2/3/4/8), PWM TIM1 channels 1–3 plus TIM17 channel 1, USART2 through ST-LINK USB VCP; fault/current/estop software and host-mocked tests.
+- **Raspberry Pi 4B:** `src/rover/sensors/` implements GY-521 MPU6050, HC-SR04 via timestamped pigpio, Picamera2 interface; `src/rover/estimation/` estimates wheel odometry and gyro yaw.
+- **Communication:** `src/rover/comms/` shares the A5 5A CRC16 packet contract with `firmware/stm32/src/protocol/`; runtime heartbeat lease must not keep stale DRIVE alive.
+- **Hardware unknowns:** see `docs/config_todo.md` and **PROPOSED** `docs/firmware/pinmap.md`. Details for nSLEEP, sensor levels, and motor supply are not validated.
+- **Start:** `docs/bringup.md`; `docs/wiring.md` and deployment instructions. `main` still has historical docs; the current architecture is this branch.
+
+---
 # AETHER-X 01 — Autonomous Adaptive Self-Calibrating 4WD Mecanum Rover
 
 > **Hardware alignment (November 2026):** The proposed current architecture is Raspberry Pi 4B + STM32 BlackPill, four separately driven DRV8876 carriers, four 25GA370-26 geared motors, four Mecanum wheels, MPU6050, HC-SR04 and a compatible Pi Camera. Candidate 3S2P Li-ion battery. This document and repo remain unverified on hardware; TODO/null values in config are intentional hard NO-GO for powered bring-up. STM32 owns low-level PWM, encoders, PID and motor command timeout. The previous Pi-only/L298N design is obsolete.
