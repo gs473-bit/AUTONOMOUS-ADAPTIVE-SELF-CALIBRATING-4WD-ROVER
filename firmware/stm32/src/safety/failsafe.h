@@ -3,7 +3,7 @@
 #include <stdint.h>
 typedef enum {STATE_BOOT,STATE_SELF_TEST,STATE_DISARMED,STATE_ARMED,STATE_RUNNING,STATE_FAULT,STATE_ESTOP} rover_state_t;
 typedef struct {
- rover_state_t state;uint32_t last_valid_ms;uint32_t fault_flags;
+ rover_state_t state;uint32_t last_valid_ms,last_drive_ms;uint32_t fault_flags;
  uint8_t selftest_pass,hardware_interlock,estop_released,estop_latched,heartbeat_seen,outputs_enabled;
  uint8_t rc_active,rc_signal_valid;
 } failsafe_t;
