@@ -1,0 +1,5 @@
+#ifndef AETHER_VERSION_H
+#define AETHER_VERSION_H
+#define AETHER_FIRMWARE_VERSION "0.1.0-prehardware"
+#define AETHER_PROTOCOL_VERSION 1u
+#endif
