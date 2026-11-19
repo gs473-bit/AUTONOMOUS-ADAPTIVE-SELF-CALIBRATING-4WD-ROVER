@@ -14,7 +14,7 @@ The photographed NUCLEO-F303RE has STM32F303RET6 (LQFP64), not a BlackPill.
 | PWM RR | PB9 | TIM17 CH1 | AF1 | Arduino D14 / CN5 | **Different timer** to avoid MCU USB PA11/TIM1_CH4 |
 | Direction FL FR RL RR | PC8 / PC9 / PC10 / PC11 | GPIO | — | CN7/CN10 | Proposed separate pins |
 | nSLEEP FL FR RL RR | PB3 / PB4 / PB5 / PB12 | GPIO | — | CN10 | PB3/PB4 debug/JTAG side functions; no SWO/JTAG use; external pulldowns required |
-| nFAULT FL FR RL RR | PC4 / PC5 / PB10 / PA4 | GPIO/EXTI | — | CN7/CN10 / Arduino A2 | EXTI lines 4,5,10,4 **CONFLICT**: PC4 and PA4 share EXTI4! Poll PA4 or relocate nFAULT; verify before wiring |
+| nFAULT FL FR RL RR | PC4 / PC5 / PB10 / PB8 | GPIO/EXTI | — | CN7/CN10 / Arduino A2 | EXTI lines 4,5,10,8; distinct, validate EXTI IRQ priorities and shield routing |
 | IPROPI FL FR RL RR | PB0 / PB1 / PC0 / PC1 | ADC1 scan | analog | Arduino A3/A5 and CN7/CN10 | Calibration and DMA channel pending |
 | Battery divider | PC2 | ADC1 scan | analog | CN7 | Resistor values TODO |
 | E-stop NC sense | PB13 | GPIO input with pullup | — | CN10 | Open loop must latch ESTOP; separate contact cuts motor VM |
@@ -29,4 +29,4 @@ The photographed NUCLEO-F303RE has STM32F303RET6 (LQFP64), not a BlackPill.
 
 Four hardware quadrature timers fit: TIM2, TIM3, TIM4, TIM8. Four PWM outputs fit on TIM1 CH1/2/3 plus TIM17 CH1. **Four channels on TIM1 alone would consume PA11 (MCU USB)**, so this proposal deliberately avoids that USB pin.
 
-**Unresolved (hard NO-GO):** nFAULT EXTI4 conflict above, actual CN7/CN10 hole numbers, GPIO alternate functions at flash time, ADC1 DMA1 channel ownership and ADC-to-IPROPI voltage scaling, ST-LINK VCP wiring jumpers and nSLEEP startup pull-downs. Code stays non-actuating. Verify against actual physical netlist and regenerate this map before attaching motor power.
+**Unresolved (hard NO-GO):** actual CN7/CN10 hole numbers, GPIO alternate functions at flash time, ADC1 DMA1 channel ownership and ADC-to-IPROPI voltage scaling, ST-LINK VCP wiring jumpers and nSLEEP startup pull-downs. Code stays non-actuating. Verify against actual physical netlist and regenerate this map before attaching motor power.
