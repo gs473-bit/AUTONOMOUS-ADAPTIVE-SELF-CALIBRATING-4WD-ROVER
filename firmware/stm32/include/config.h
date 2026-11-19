@@ -16,6 +16,7 @@
 #define AETHER_TRACK_WIDTH_M 0.0f
 #define AETHER_ENCODER_COUNTS_WHEEL_REV 0.0f
 #define AETHER_MAX_WHEEL_RAD_S 0.0f
+#define AETHER_RAMP_DUTY_PER_S 0.0f /* TODO measure allowed duty rise per second */
 #define AETHER_CURRENT_LIMIT_A 0.0f
 #define AETHER_IPROPI_VOLTS_PER_AMP 0.0f
 #define AETHER_BATTERY_DIVIDER_RATIO 0.0f

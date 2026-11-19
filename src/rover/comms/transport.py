@@ -68,7 +68,7 @@ class HeartbeatLink:
         self.lease_s = lease_s
         self.clock = clock
         self.seq = 0
-        self.last_drive_time = float("-inf")
+        self.last_drive_time = None
         self.lock = threading.RLock()
         self.stop_event = threading.Event()
         self.thread = None
@@ -92,7 +92,7 @@ class HeartbeatLink:
 
     def heartbeat_once(self):
         with self.lock:
-            if self.clock() - self.last_drive_time >= self.lease_s:
+            if self.last_drive_time is not None and self.clock() - self.last_drive_time >= self.lease_s:
                 self._send(STOP)
             self._send(HEARTBEAT)
 

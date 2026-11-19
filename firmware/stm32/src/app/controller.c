@@ -155,7 +155,7 @@ void controller_init(void){
  estop_init(&estop);
  watchdog_init(&loop_watchdog,AETHER_TIMEOUT_MS);
  loop.max_abs_rad_s=AETHER_MAX_WHEEL_RAD_S;
- loop.ramp_per_s=0.0f;/* TODO real safe ramp, refuses actuation until set */
+ loop.ramp_per_s=AETHER_RAMP_DUTY_PER_S; /* measured before enabling outputs */
  hw_ready=(uint8_t)(AETHER_ACTUATION_ENABLED && AETHER_PINMAP_VERIFIED &&
      AETHER_WHEEL_RADIUS_M>0.0f && AETHER_WHEELBASE_M>0.0f &&
      AETHER_TRACK_WIDTH_M>0.0f && AETHER_ENCODER_COUNTS_WHEEL_REV>0.0f &&

@@ -10,3 +10,5 @@ Commands: DRIVE 0x01 (float32 LE vx m/s, vy m/s, wz rad/s); STOP 0x02; ARM 0x03;
 Telemetry is 59 bytes: float32 wheel_rad_s[4], int32 encoder_counts[4], float32 battery_v, float32 motor_currents_a[4], uint8 state, uint32 fault_flags, uint8 rc_state, uint8 valid_mask. Initial firmware reports validity mask **0** and values 0; **DO NOT treat those values as sensor measurements.**
 
 The physical E-stop must cut motor power and cannot rely on this protocol.
+
+Extra local-safety commands: 0x09 CLEAR_ESTOP (requires released/debounced physical NC circuit, explicit packet); 0x0A FAULT_REQ (returns 0x84 fault log). These never bypass the hardware actuation interlock.
