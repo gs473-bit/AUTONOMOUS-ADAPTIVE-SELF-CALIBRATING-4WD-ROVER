@@ -1,1 +1,1 @@
-"""AETHER framed UART protocol mirror."""
+"""Rover wire protocol and transports."""
