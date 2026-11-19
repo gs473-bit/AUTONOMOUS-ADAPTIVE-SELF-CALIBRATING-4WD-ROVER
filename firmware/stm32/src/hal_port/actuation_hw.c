@@ -44,7 +44,8 @@ static int pwm_setup(TIM_HandleTypeDef *h,TIM_TypeDef *inst,unsigned channels){
 }
 static void output_pwm(unsigned wheel,float duty){
  if(!configured || wheel>=4u)return;
- if(duty<0.0f)duty=0.0f;if(duty>1.0f)duty=1.0f;
+ if(duty<0.0f)duty=0.0f;
+ if(duty>1.0f)duty=1.0f;
  const uint32_t pulse=(uint32_t)(3599.0f*duty);
  TIM_HandleTypeDef *h=wheel==3u?&pwm_b:&pwm_a;
  uint32_t ch=wheel==0u?TIM_CHANNEL_1:wheel==1u?TIM_CHANNEL_2:wheel==2u?TIM_CHANNEL_3:TIM_CHANNEL_1;
