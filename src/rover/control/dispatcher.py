@@ -3,6 +3,8 @@
 
 from dataclasses import dataclass
 import math
+import threading
+import time
 
 from rover.control.motor_interface import MotorInterface
 from rover.navigation.commands import NavigationAction, NavigationCommand
@@ -23,9 +25,41 @@ class CommandDispatcher:
     Hardware-level protections must be implemented independently.
     """
 
-    def __init__(self, motor: MotorInterface) -> None:
+    def __init__(self, motor: MotorInterface, *, clock=None, timer_factory=None) -> None:
         self._motor = motor
         self._emergency_stop_active = True
+        self._clock = clock or time.monotonic
+        self._timer_factory = timer_factory or threading.Timer
+        self._timer = None
+        self._deadline = None
+        self._generation = 0
+        self._lock = threading.RLock()
+
+    def _cancel_timer(self):
+        self._generation += 1
+        if self._timer is not None:
+            self._timer.cancel()
+            self._timer = None
+        self._deadline = None
+
+    def _timeout(self, generation):
+        with self._lock:
+            if generation != self._generation:
+                return
+            remaining = self._deadline - self._clock()
+            if remaining > 0:
+                self._timer = self._timer_factory(remaining, self._timeout, args=(generation,))
+                self._timer.daemon = True
+                self._timer.start()
+                return
+            self._motor.stop()
+            self._cancel_timer()
+
+    def poll_watchdog(self):
+        """Diagnostic / deterministic fake-clock evaluation (not hardware watchdog)."""
+        with self._lock:
+            if self._deadline is not None and self._clock() >= self._deadline:
+                self._timeout(self._generation)
 
     @property
     def emergency_stop_active(self) -> bool:
@@ -36,7 +70,9 @@ class CommandDispatcher:
         self._emergency_stop_active = bool(active)
 
         if self._emergency_stop_active:
-            self._motor.stop()
+            with self._lock:
+                self._cancel_timer()
+                self._motor.stop()
 
     def dispatch(self, command: NavigationCommand) -> DispatchResult:
         """Validate a command and forward permitted requests."""
@@ -44,7 +80,9 @@ class CommandDispatcher:
             return DispatchResult(False, "Invalid command type")
 
         if command.action == NavigationAction.STOP:
-            self._motor.stop()
+            with self._lock:
+                self._cancel_timer()
+                self._motor.stop()
             return DispatchResult(True, "Stop command accepted")
 
         if self._emergency_stop_active:
@@ -80,7 +118,14 @@ class CommandDispatcher:
             return DispatchResult(False, "Unsupported navigation action")
 
         try:
-            self._motor.set_wheel_speeds(fl, fr, rl, rr)
+            with self._lock:
+                self._cancel_timer()
+                self._motor.set_wheel_speeds(fl, fr, rl, rr)
+                self._deadline = self._clock() + command.duration_s
+                generation = self._generation
+                self._timer = self._timer_factory(command.duration_s, self._timeout, args=(generation,))
+                self._timer.daemon = True
+                self._timer.start()
         except Exception:
             try:
                 self._motor.stop()
