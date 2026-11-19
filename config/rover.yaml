@@ -1,66 +1,81 @@
-# AETHER-X 01; NULL = TODO: identify actual component, do not assume.
+# AETHER-X01 split architecture: null = measured/confirmed value required.
 project: AETHER-X 01
 compute:
-  platform: Raspberry Pi 4B
+  platform: Raspberry Pi 4 Model B
   ram_gb: null # TODO
-  os_release: null # TODO; Raspberry Pi OS 64-bit to confirm
-  role: high_level_perception_mapping_planning
+  os_release: null # TODO Raspberry Pi OS 64-bit Bookworm is assumption
+  role: vision_sensors_fusion_mapping_planning_ui
 stm32:
-  board: BlackPill
-  mcu: null # TODO exact MCU markings
-  role: wheel_control_and_safety
-  firmware_target: null # TODO
-  uart_instance: null # TODO
-  uart_rx_pin: null # TODO
-  uart_tx_pin: null # TODO
+  board: NUCLEO-F303RE
+  mcu: STM32F303RET6
+  role: motor_encoder_pid_adc_safety
+  firmware_target: nucleo_f303re
+  host_uart_instance: USART2
+  host_uart_tx_pin: PA2
+  host_uart_rx_pin: PA3
 camera:
-  model: null # TODO exact Pi Camera model
-  interface: null # TODO verified CSI connector and cable
+  model: null # TODO verify CSI model
+  interface: CSI
 motor_driver:
   model: DRV8876
   board_count_target: 4
-  carrier_model: null # TODO
-  control_mode: null # TODO PH/EN or PWM per carrier
-  pins: {fl: null, fr: null, rl: null, rr: null} # TODO
+  carrier_model: Pololu 4037 QFN
+  control_mode: PH/EN
+  pins: {fl: null, fr: null, rl: null, rr: null} # proposed in docs/firmware/pinmap.md
   verified: false
 motors:
   model: 25GA370-26
   count_target: 4
-  rated_voltage_v: null # TODO nameplate
-  gearbox_ratio: null # TODO
+  rated_voltage_v: 12.0
+  no_load_speed_rpm_claimed: 60
+  gearbox_ratio: null # TODO actual motor variant
   stall_current_a: null # TODO
 encoders:
-  type: null # TODO actual board/interface
+  type: Hall quadrature A/B
   counts_per_wheel_revolution: null # TODO after quadrature and gearbox
-  gpio_pins: null # TODO STM32 timer mapping
+  gpio_pins: null # TODO confirm pinmap
 sensors:
+  imu_model: MPU6050 GY-521
+  imu_bus: raspberry_pi_i2c1
+  imu_i2c_address: 104 # likely 0x68, verify physically with i2cdetect
   ultrasonic_model: HC-SR04
-  ultrasonic_count: null # TODO
-  imu_model: MPU6050
-  imu_i2c_address: null # TODO 0x68 or 0x69 determined with verified hardware
-  imu_bus: stm32 # proposed, not wired
+  ultrasonic_count: null # TODO number and pin pairs
+  ultrasonic_bus: raspberry_pi_gpio_pigpio
+  ultrasonic_echo_level_shifted: false # TODO physical validation
 mecanum:
-  wheel_radius_m: null # TODO measure loaded effective radius
-  wheelbase_m: null # TODO center-to-center front to rear
-  track_width_m: null # TODO left to right wheel centers
-  max_wheel_rad_s: null # TODO measured limit, not rated guess
+  nominal_wheel_diameter_m: 0.08
+  wheel_radius_m: null # TODO effective rolling radius
+  wheelbase_m: null # TODO measured center-to-center
+  track_width_m: null # TODO measured center-to-center
+  max_wheel_rad_s: null # TODO measured safe limit
 fusion:
-  gyro_weight: 0.90 # provisional algorithm parameter, tune after logging
-  gyro_bias_rad_s: null # TODO calibrate stationary
+  gyro_weight: 0.90 # preliminary tuning only
+  gyro_bias_rad_s: null # measured by stationary calibration
 power:
-  battery_model: 3S2P Li-ion # candidate only
-  nominal_voltage_v: null # TODO confirm actual pack
-  pack_min_voltage_v: null # TODO from cell/BMS datasheet
-  pack_max_voltage_v: null # TODO from cell/BMS datasheet
+  battery_model: Wattnine NMC 3S2P
+  nominal_voltage_v: 12.0
+  label_min_voltage_v: 9.2
+  label_max_voltage_v: 12.6
+  label_current_a: 4.0
+  capacity_ah: 4.0
+  pack_low_threshold_v: null # TODO manufacturer BMS
+  pack_critical_threshold_v: null # TODO manufacturer BMS
   pi_regulated_voltage_v: 5.1
   pi_regulator_current_a: null # TODO
-  motor_fuse_a: null # TODO current/thermal/wire calculation
+  motor_fuse_a: null # TODO
+  battery_adc_divider_ratio: null # TODO
 safety:
   physical_estop_verified: false
-  command_timeout_ms: 200 # design target, NOT hardware-tested
-  motor_power_interrupted_by_estop: null # TODO verify physically
+  command_timeout_ms: 200
+  motor_power_interrupted_by_estop: null # TODO physically prove
+  driver_sleeps_default_low: null # TODO external pull-down
 uart:
-  pi_device: /dev/serial0 # candidate only; verify
-  baud_rate: null # TODO agree with STM32 firmware
-  pi_tx_bcm: null # TODO proposed 14, NOT verified
-  pi_rx_bcm: null # TODO proposed 15, NOT verified
+  path: /dev/aether_stm32
+  fallback_path: /dev/ttyACM0
+  type: Nucleo ST-LINK/V2-1 USB VCP
+  baud_rate: 115200
+rc:
+  transmitter: FlySky FS-i6S
+  receiver: null # TODO actual model, likely FS-iA6B
+  owner: null # recommend Nucleo for independent RC kill
+  ibus_gpio_voltage: null # TODO verify
