@@ -9,6 +9,7 @@
 typedef enum {
   PKT_DRIVE=1, PKT_STOP=2, PKT_ARM=3, PKT_DISARM=4,
   PKT_SET_PID=5, PKT_SET_MODE=6, PKT_STATUS_REQ=7, PKT_HEARTBEAT=8,
+  PKT_CLEAR_ESTOP=9, PKT_FAULT_REQ=10,
   PKT_TELEMETRY=0x81, PKT_ACK=0x82, PKT_NACK=0x83, PKT_FAULT_LOG=0x84
 } packet_type_t;
 typedef struct {uint16_t sequence; uint8_t type; uint16_t length; uint8_t payload[PROTO_MAX_PAYLOAD];} packet_t;

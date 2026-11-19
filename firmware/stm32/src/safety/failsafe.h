@@ -16,5 +16,6 @@ int failsafe_drive(failsafe_t *s,uint32_t ms);
 void failsafe_disarm(failsafe_t *s);
 void failsafe_estop(failsafe_t *s,int circuit_open);
 void failsafe_fault(failsafe_t *s,uint32_t flags);
+int failsafe_clear_estop(failsafe_t *s);
 void failsafe_tick(failsafe_t *s,uint32_t now);
 #endif

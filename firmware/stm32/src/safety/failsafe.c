@@ -34,6 +34,12 @@ void failsafe_fault(failsafe_t *s,uint32_t flags){
  s->fault_flags|=flags;s->outputs_enabled=0u;
  if(s->state!=STATE_ESTOP)s->state=STATE_FAULT;
 }
+int failsafe_clear_estop(failsafe_t *s){
+ if(!s || !s->estop_released || s->fault_flags)return 0;
+ s->estop_latched=0u;
+ if(s->state==STATE_ESTOP)s->state=STATE_DISARMED;
+ return 1;
+}
 void failsafe_tick(failsafe_t *s,uint32_t now){
  if(!s)return;
  if(s->estop_latched && s->state!=STATE_BOOT && s->state!=STATE_SELF_TEST){s->state=STATE_ESTOP;s->outputs_enabled=0u;return;}
