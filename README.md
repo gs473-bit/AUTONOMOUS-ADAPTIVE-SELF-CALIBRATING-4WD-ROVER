@@ -1,4 +1,8 @@
-# Autonomous Adaptive Self-Calibrating 4WD Rover
+# AETHER-X 01 — Autonomous Adaptive Self-Calibrating 4WD Mecanum Rover
+
+> **Hardware alignment (November 2026):** The proposed current architecture is Raspberry Pi 4B + STM32 BlackPill, four separately driven DRV8876 carriers, four 25GA370-26 geared motors, four Mecanum wheels, MPU6050, HC-SR04 and a compatible Pi Camera. Candidate 3S2P Li-ion battery. This document and repo remain unverified on hardware; TODO/null values in config are intentional hard NO-GO for powered bring-up. STM32 owns low-level PWM, encoders, PID and motor command timeout. The previous Pi-only/L298N design is obsolete.
+
+> **Software is a scaffold, not a deployed control stack.** Never energize motors based on software tests alone.
 
 > **ECE357 Capstone Project — Group 19**  
 > **SEE. MAP. PLAN. ADAPT.**
@@ -71,7 +75,7 @@ The Raspberry Pi 4B is intended to act as the central computing host for vision,
 └────────────────┘                 │
                                    ▼
                          ┌───────────────────┐
-                         │ 2 × L298N Drivers │
+                         │ 4 × DRV8876 Drivers │
                          └─────────┬─────────┘
                                    ▼
                          ┌───────────────────┐
@@ -139,7 +143,7 @@ The following list reflects the current project concept. Exact models, quantitie
 | Raspberry Pi 4B | Main embedded computer | Selected in project architecture |
 | Camera module | Image acquisition for mapping | Exact module and Pi interface compatibility must be confirmed |
 | OV7670 VGA camera | Candidate camera module | Do not assume direct compatibility with Raspberry Pi without verifying the interface and driver path |
-| 2 × L298N motor driver boards | Four motor channels across two boards | Current, voltage drop, and thermal performance require validation |
+| 4 × DRV8876 motor driver boards | Four motor channels across two boards | Current, voltage drop, and thermal performance require validation |
 | 4 × DC gear motors | Independent 4WD actuation | Motor voltage, stall current, gearing, and encoder availability to be confirmed |
 | HC-SR04 ultrasonic sensor(s) | Short-range distance measurement | Quantity and mounting positions to be confirmed |
 | MPU6050 | Inertial measurements | I²C configuration and calibration required |
@@ -345,3 +349,12 @@ This repository is the shared engineering record for the project. When contribut
 ## License
 
 A license has not yet been selected. Until one is added, reuse and redistribution permissions are not explicitly granted. Add a `LICENSE` file once the team has agreed on the intended license.
+
+
+## AETHER-X01 verified interface status
+
+- The Raspberry Pi runs a high-level Python process, while a planned STM32 BlackPill drives four independent FL/FR/RL/RR channels.
+- The DRV8876 carrier pin mapping and its PH/EN/PWM mode are **TODO**, never safe to infer from the chip name.
+- Pi UART GPIO14/GPIO15 are candidates only; STM32 UART pins, baud rate, encoder timer pins and E-stop interface require board confirmation.
+- `mecanum.wheel_radius_m`, `wheelbase_m`, `track_width_m` are null until measured; constructing geometry with missing values must fail closed.
+- See `docs/wiring-record.md` for pre-power checks and `docs/test-plan.md` for hardware acceptance evidence.
