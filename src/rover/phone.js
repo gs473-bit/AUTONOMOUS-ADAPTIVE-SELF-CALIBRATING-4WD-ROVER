@@ -42,4 +42,11 @@ for (const button of document.querySelectorAll(".pad button")) {
   button.addEventListener("lostpointercapture",() => {if(active) stopNow();});
 }
 document.addEventListener("visibilitychange", () => {if (document.hidden) stopNow();});
-window.addEventListener("pagehide", () => {active=false;clearInterval(ticker);navigator.sendBeacon /* no auth on beacon: MCU timeout remains decisive */;});
+window.addEventListener("pagehide", () => {
+  active=false;clearInterval(ticker);
+  fetch("/api/disarm", {
+    method:"POST", headers:{"Content-Type":"application/json",
+                           "Authorization":"Bearer "+token.value},
+    body:"{}", keepalive:true
+  }).catch(() => {}); // Best-effort; STM32 timeout is authoritative.
+});

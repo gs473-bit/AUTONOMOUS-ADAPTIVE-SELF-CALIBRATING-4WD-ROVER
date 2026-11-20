@@ -75,7 +75,9 @@ class PhoneController:
 
     def status(self):
         return {"motion_configured": self.motion_enabled and self.limits is not None,
-                "arm_requested": self.arm_requested,
+                "arm_requested": bool(self.arm_requested and
+                                      self.arm_connection == self.link.connection_generation and
+                                      self.link.transport.port is not None),
                 "connected": self.link.transport.port is not None,
                 "hardware_verified": False}
 
@@ -104,9 +106,13 @@ def make_server(control, token, host="127.0.0.1", port=8080):
             return hmac.compare_digest(supplied, "Bearer " + token)
 
         def do_GET(self):
-            if self.path == "/":
-                webpage = pathlib.Path(__file__).with_name("phone_ui.html").read_bytes()
-                self._send(200, webpage, "text/html; charset=utf-8")
+            if self.path in ("/", "/phone.js", "/phone.css"):
+                filename = {"/": "phone_ui.html", "/phone.js": "phone.js",
+                            "/phone.css": "phone.css"}[self.path]
+                kind = {"/": "text/html; charset=utf-8",
+                        "/phone.js": "text/javascript; charset=utf-8",
+                        "/phone.css": "text/css; charset=utf-8"}[self.path]
+                self._send(200, pathlib.Path(__file__).with_name(filename).read_bytes(), kind)
             elif self.path == "/api/status":
                 self._send(200, control.status()) if self._authorized() else self._send(401, {"error": "unauthorized"})
             else:
