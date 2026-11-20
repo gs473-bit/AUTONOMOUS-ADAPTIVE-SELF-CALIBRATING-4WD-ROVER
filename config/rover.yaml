@@ -28,11 +28,14 @@ motors:
   count_target: 4
   rated_voltage_v: 12.0
   no_load_speed_rpm_claimed: 60
-  gearbox_ratio: null # TODO exact 60RPM variant: earlier generic Tronsun 26:1 is 231RPM, NOT verified for this motor
+  gearbox_ratio: null # STOP: physically verify which 12V 60RPM variant you purchased
+  gearbox_ratio_datasheet_candidate: 103 # user-supplied chart row: 12V/60RPM -> 103:1; physical variant unverified
   stall_current_a: null # TODO
 encoders:
   type: Hall quadrature A/B
-  counts_per_wheel_revolution: null # TODO measured output x4 counts; '11 signals/motor turn' alone does not determine count without exact gearbox + convention
+  counts_per_wheel_revolution: null # STOP: physically measure x4 counts at output shaft
+  hall_signals_per_motor_rev_datasheet: 11 # from wiring illustration; definition of 'signals' still unclear
+  x4_output_cpr_conditional_estimate: 4532 # 11*4*103; valid ONLY if 11 cycles/channel/rev + ratio exactly 103
   gpio_pins: null # TODO confirm pinmap
 sensors:
   imu_model: MPU6050 GY-521

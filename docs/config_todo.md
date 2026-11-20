@@ -25,3 +25,6 @@ All values marked TODO are not invented by firmware.
 | PID gains, current/stall limits, latency CPU | Test mocked then validate with current-limited stands and oscilloscope | TODO |
 
 No software acceptance can substitute for a physical fuse, normally-closed E-stop, or driver current limiting.
+
+## Encoder and gearbox references (do not copy into safety-critical firmware yet)
+The provided 12V/60RPM 25GA370 chart includes a **103:1** reduction row. The motor wiring diagram states **11 signals per motor rotation** on the yellow/green feedback channels. If these 11 signals are *cycles per channel* and the gear ratio truly equals 103, x4 quadrature decoding would yield **11 × 4 × 103 = 4532** edges per output revolution. This is a *conditional calculation*, **not a calibrated encoder CPR**. A separate Tronsun 25GA370 datasheet describes a 26:1 / 231 RPM variant, which is not the claimed 60 RPM motor. Verify actual motor label/markings and measure output-shaft ticks before setting STM32 `AETHER_ENCODER_COUNTS_WHEEL_REV`. The unresolved setting remains zero and blocks actuation.
