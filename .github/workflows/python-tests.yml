@@ -1,7 +1,7 @@
 name: AETHER Software and Firmware Validation
 on:
   push:
-    branches: [main, aether-x01-split-architecture]
+    branches: [main, aether-x01-smartphone-4sonar]
   pull_request:
     branches: [main]
   workflow_dispatch:
