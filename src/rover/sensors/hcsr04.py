@@ -14,6 +14,15 @@ class UltrasonicArray:
     def __init__(self, pairs, pigpio_instance=None, speed_m_s=343.0):
         if not pairs:
             raise ValueError("Provide at least one (TRIG, ECHO) GPIO pair")
+        if any(not isinstance(pair, (list, tuple)) or len(pair) != 2 for pair in pairs):
+            raise ValueError("Expected (TRIG, ECHO) BCM pairs")
+        pins = [pin for pair in pairs for pin in pair]
+        if any(type(pin) is not int or not 4 <= pin <= 27 for pin in pins):
+            raise ValueError("BCM GPIOs must be integers in usable range 4..27")
+        if len(set(pins)) != len(pins):
+            raise ValueError("GPIO pin reused across ultrasonic channels")
+        if any(pin in (14, 15) for pin in pins):
+            raise ValueError("UART pins reserved; choose other BCM GPIOs")
         self._owns_gpio = pigpio_instance is None
         if pigpio_instance is None:
             import pigpio
@@ -27,6 +36,7 @@ class UltrasonicArray:
         self._callback = []
         self._edges = [None] * len(self.pairs)
         self._events = [threading.Event() for _ in self.pairs]
+        self._widths = [None] * len(self.pairs)
         self._index = 0
         self._last_ping = 0.0
         for i, (trig, echo) in enumerate(self.pairs):
@@ -45,7 +55,7 @@ class UltrasonicArray:
                 width = (tick - self._edges[i]) & 0xffffffff
                 self._edges[i] = None
                 if 100 <= width <= 25000:
-                    self._width = width
+                    self._widths[i] = width
                     self._events[i].set()
         return handler
 
@@ -58,13 +68,23 @@ class UltrasonicArray:
             self._index = (i+1) % len(self.pairs)
             self._events[i].clear()
             self._edges[i] = None
-            self._width = None
+            self._widths[i] = None
             self._last_ping = time.monotonic()
             self.gpio.gpio_trigger(self.pairs[i][0], 10, 1)
             received = self._events[i].wait(0.030)
-            distance = self._width * 1e-6 * self.speed_m_s / 2 if received and self._width is not None else math.nan
+            distance = (self._widths[i] * 1e-6 * self.speed_m_s / 2
+                        if received and self._widths[i] is not None else math.nan)
             valid = bool(received and 0.02 <= distance <= 4.0)
             return i, RangeSample(distance if valid else math.nan, time.monotonic_ns(), valid)
+
+    @classmethod
+    def from_config(cls, sensor_config, pigpio_instance=None):
+        """Require all four real GPIO pair assignments before touching hardware."""
+        count = sensor_config.get("ultrasonic_count")
+        pairs = sensor_config.get("ultrasonic_gpio_pairs")
+        if count != 4 or not isinstance(pairs, list) or len(pairs) != 4:
+            raise ValueError("Four ultrasonic GPIO pairs remain TODO; no GPIO initialized")
+        return cls(pairs, pigpio_instance=pigpio_instance)
 
     def close(self):
         for cb in self._callback:
