@@ -69,6 +69,7 @@ class HeartbeatLink:
         self.clock = clock
         self.seq = 0
         self.last_drive_time = None
+        self.connection_generation = 0
         self.lock = threading.RLock()
         self.stop_event = threading.Event()
         self.thread = None
@@ -77,6 +78,10 @@ class HeartbeatLink:
         packet = Packet(self.seq, kind, payload)
         self.transport.send(packet)
         self.seq = (self.seq + 1) & 0xFFFF
+
+    def arm(self):
+        with self.lock:
+            self._send(ARM)
 
     def drive(self, vx, vy, wz):
         if not all(math.isfinite(v) for v in (vx, vy, wz)):
@@ -88,12 +93,13 @@ class HeartbeatLink:
     def disarm(self):
         with self.lock:
             self._send(DISARM)
-            self.last_drive_time = float("-inf")
+            self.last_drive_time = None
 
     def heartbeat_once(self):
         with self.lock:
             if self.last_drive_time is not None and self.clock() - self.last_drive_time >= self.lease_s:
                 self._send(STOP)
+                self.last_drive_time = None
             self._send(HEARTBEAT)
 
     def _run(self):

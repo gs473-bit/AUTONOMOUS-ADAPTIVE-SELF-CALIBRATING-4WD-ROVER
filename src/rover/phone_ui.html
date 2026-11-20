@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AETHER-X 01 • Phone Teleop</title>
+<link rel="stylesheet" href="/phone.css">
+</head><body>
+<main>
+<h1>AETHER-X 01</h1>
+<p class="warning">NON-HARDWARE-VERIFIED. The physical E-stop is mandatory. Closing this page must never be your only stopping method.</p>
+<label>Access token <input id="token" type="password" autocomplete="off" placeholder="Enter local AETHER token"></label>
+<p id="status" role="status" aria-live="polite">Disconnected / locked until configured.</p>
+<div class="buttons"><button id="arm">Request ARM</button><button id="stop" class="stop">STOP / DISARM</button></div>
+<h2>Hold to move • release to stop</h2>
+<div class="pad">
+<button data-f="1" data-l="0" data-t="0">Forward</button>
+<button data-f="0" data-l="1" data-t="0">Strafe left</button>
+<button data-f="0" data-l="-1" data-t="0">Strafe right</button>
+<button data-f="-1" data-l="0" data-t="0">Reverse</button>
+<button data-f="0" data-l="0" data-t="1">Rotate left</button>
+<button data-f="0" data-l="0" data-t="-1">Rotate right</button>
+</div>
+<p>Manual input values are normalized; measured speed limits are configured only on the Pi after calibration. A lost phone connection cannot override the STM32 timeout.</p>
+</main>
+<script src="/phone.js"></script>
+</body></html>
