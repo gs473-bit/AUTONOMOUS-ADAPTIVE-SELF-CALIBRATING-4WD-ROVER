@@ -15,4 +15,7 @@ def test_split_hardware_configuration_confirmations():
     assert data["power"]["capacity_ah"] == 4.0
     assert data["power"]["nominal_voltage_v"] == 12.0
     assert data["motors"]["gearbox_ratio"] is None
+    assert data["motors"]["gearbox_ratio_datasheet_candidate"] == 103
+    assert data["encoders"]["hall_signals_per_motor_rev_datasheet"] == 11
+    assert data["encoders"]["x4_output_cpr_conditional_estimate"] == 4532
     assert data["encoders"]["counts_per_wheel_revolution"] is None
