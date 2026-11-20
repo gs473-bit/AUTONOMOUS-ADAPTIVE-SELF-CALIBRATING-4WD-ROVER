@@ -1,3 +1,11 @@
+# AETHER-X 01 — Current hardware decisions (2026-11-21)
+- **4× HC-SR04** on Raspberry Pi; unique GPIO pairs and physical orientations remain TODO. **Each ECHO requires a 5V-to-3.3V divider.**
+- **Smartphone instead of FlySky/iBUS**: Wi-Fi/secure private network -> Raspberry Pi phone UI -> USB VCP -> STM32. STM32 retains independent 200 ms timeout and hardware E-stop. No on-boot or remote auto-arming.
+- **Battery:** user-confirmed 3S2P NMC, **12V nominal, 4000mAh, 4A continuous**; peak/BMS/fuse/connector details pending. The four motors and Pi share this budget and must be current-budgeted.
+- **Motor sheet caution:** Tronsun 26:1 example states 231 RPM at 12 V, so it must NOT be silently treated as your 12 V 60 RPM variant. Seller's 103:1 / 60 RPM row is a possible match, not verified. Encoder output-shaft x4 counts remain TODO.
+- **Firmware motor actuation remains OFF.** See `docs/smartphone_control.md`, `docs/bringup.md`, `docs/config_todo.md`.
+
+---
 # AETHER-X 01 — Pi/Nucleo split architecture (current development branch)
 
 **Safety:** The STM32 motor outputs remain compile-disabled and unverified on hardware. Do not wire or power motors based on build/CI success.
@@ -11,7 +19,7 @@
 ---
 # AETHER-X 01 — Autonomous Adaptive Self-Calibrating 4WD Mecanum Rover
 
-> **Hardware alignment (November 2026):** The proposed current architecture is Raspberry Pi 4B + STM32 BlackPill, four separately driven DRV8876 carriers, four 25GA370-26 geared motors, four Mecanum wheels, MPU6050, HC-SR04 and a compatible Pi Camera. Candidate 3S2P Li-ion battery. This document and repo remain unverified on hardware; TODO/null values in config are intentional hard NO-GO for powered bring-up. STM32 owns low-level PWM, encoders, PID and motor command timeout. The previous Pi-only/L298N design is obsolete.
+> **Hardware alignment (November 2026):** The current architecture is Raspberry Pi 4B + STM32 NUCLEO-F303RE, four separately driven DRV8876 carriers, four 25GA370-26 geared motors, four Mecanum wheels, MPU6050, HC-SR04 and a compatible Pi Camera. Candidate 3S2P Li-ion battery. This document and repo remain unverified on hardware; TODO/null values in config are intentional hard NO-GO for powered bring-up. STM32 owns low-level PWM, encoders, PID and motor command timeout. The previous Pi-only/L298N design is obsolete.
 
 > **Software is a scaffold, not a deployed control stack.** Never energize motors based on software tests alone.
 
@@ -44,7 +52,7 @@ An autonomous 4-wheel-drive (4WD) rover concept built around a Raspberry Pi 4B. 
 
 The rover is designed to observe its surroundings, build a usable representation of the environment, plan a route, move using independently controlled wheels, detect unexpected obstacles, and adapt when wheel performance changes or a motor channel becomes unavailable.
 
-The Raspberry Pi 4B is intended to act as the central computing host for vision, mapping, navigation, sensor processing, motor commands, and the smartphone control interface. The design aims to avoid a separate intermediary microcontroller.
+The Raspberry Pi 4B is intended to act as the central computing host for vision, mapping, navigation, sensor processing, motor commands, and the smartphone control interface. The NUCLEO-F303RE provides an independent low-level motor controller and local fail-safe; Pi processes sensors and hosts smartphone control.
 
 ### Core workflow
 
@@ -143,7 +151,7 @@ Degraded operation is **not guaranteed**. Reduced speed, wider turns, a clear op
 
 ### 7. Smartphone control
 
-A planned Wi-Fi interface will support manual directional commands, speed control, emergency stop, and mode selection. Telemetry may include rover mode, sensor state, motor state, and navigation information.
+A Pi-side token-authenticated smartphone interface is implemented (motion locked until hardware signoff); a planned secure Wi-Fi/VPN access path will support manual directional commands, speed control, emergency stop, and mode selection. Telemetry may include rover mode, sensor state, motor state, and navigation information.
 
 ## Hardware and Components
 

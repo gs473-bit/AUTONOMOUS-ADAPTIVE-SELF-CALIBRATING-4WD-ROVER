@@ -1,5 +1,5 @@
 [Unit]
-Description=AETHER-X 01 Pi USB link (no autonomous motion)
+Description=AETHER-X 01 Pi USB link and optional locked smartphone UI
 Wants=network-online.target
 After=network-online.target
 [Service]
@@ -7,6 +7,7 @@ Type=simple
 User=pi
 Group=pi
 SupplementaryGroups=dialout
+EnvironmentFile=-/etc/aether/phone.env
 WorkingDirectory=/opt/aether
 ExecStart=/opt/aether/.venv/bin/python -m rover.service
 Restart=on-failure
