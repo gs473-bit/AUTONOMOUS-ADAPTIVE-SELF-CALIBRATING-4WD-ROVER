@@ -31,3 +31,6 @@ where = ["src"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
+
+[tool.setuptools.package-data]
+rover = ["phone_ui.html", "phone.js", "phone.css"]
