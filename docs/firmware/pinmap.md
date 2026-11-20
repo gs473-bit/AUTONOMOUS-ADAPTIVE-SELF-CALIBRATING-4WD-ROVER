@@ -19,7 +19,7 @@ The photographed NUCLEO-F303RE has STM32F303RET6 (LQFP64), not a BlackPill.
 | Battery divider | PC2 | ADC1 scan | analog | CN7 | Resistor values TODO |
 | E-stop NC sense | PB13 | GPIO input with pullup | — | CN10 | Open loop must latch ESTOP; separate contact cuts motor VM |
 | Host USB VCP | PA2 TX / PA3 RX | USART2 | AF7 | ST-LINK/V2-1 solder-bridge path | Target pins remain reserved exclusively for VCP |
-| Optional iBUS RX | PB11 | USART3 RX | AF7 | CN10 | Receiver/type/logic level TODO; disabled by default |
+| PB11 spare | PB11 | unused | — | CN10 | FlySky/iBUS removed; no RC receiver wiring |
 | Debug | PA13 / PA14 | SWD | AF0 | ST-LINK | Reserved |
 | Pi camera, MPU6050, HC-SR04 | None | Pi side | — | Pi GPIO/CSI | Do not connect to STM32 |
 | User LED/button | PA5 / PC13 | GPIO | — | On-board | Reserved |

@@ -7,8 +7,10 @@ Commands: DRIVE 0x01 (float32 LE vx m/s, vy m/s, wz rad/s); STOP 0x02; ARM 0x03;
 
 **Motion safety:** Pi heartbeat thread cannot extend a stale DRIVE indefinitely: Pi issues STOP when motion-command lease expires at 150ms; STM32 safety also expires DRIVE independently at 200ms even if heartbeats continue. Bad CRC/length/sequence are dropped and counted, never refresh the STM32 watchdog.
 
-Telemetry is 59 bytes: float32 wheel_rad_s[4], int32 encoder_counts[4], float32 battery_v, float32 motor_currents_a[4], uint8 state, uint32 fault_flags, uint8 rc_state, uint8 valid_mask. Initial firmware reports validity mask **0** and values 0; **DO NOT treat those values as sensor measurements.**
+Telemetry is 59 bytes: float32 wheel_rad_s[4], int32 encoder_counts[4], float32 battery_v, float32 motor_currents_a[4], uint8 state, uint32 fault_flags, uint8 reserved_rc_legacy_zero, uint8 valid_mask. Initial firmware reports validity mask **0** and values 0; **DO NOT treat those values as sensor measurements.**
 
 The physical E-stop must cut motor power and cannot rely on this protocol.
 
 Extra local-safety commands: 0x09 CLEAR_ESTOP (requires released/debounced physical NC circuit, explicit packet); 0x0A FAULT_REQ (returns 0x84 fault log). These never bypass the hardware actuation interlock.
+
+Mode 0 = smartphone/manual, 1 = autonomous, 2 (legacy RC) is rejected. Telemetry byte 57 stays present and is fixed to zero for version-1 packet compatibility. The STM32 itself still enforces E-stop and lost-command protection independently of Wi-Fi/Pi.

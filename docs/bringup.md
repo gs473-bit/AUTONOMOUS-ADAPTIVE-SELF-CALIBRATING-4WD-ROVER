@@ -65,7 +65,7 @@ All tests below are planned. **PROPOSED: verify pinmap and assembly before flash
    ```
    **PASS:** `68` (or verified `69`) seen at address. An address is only enumeration; read sample/perform stationary gyro calibration separately.
 
-9. **HC-SR04 and camera alone.** Measure ECHO divider with meter, keep Pi GPIO disconnected until ~3.0V high is verified. Then test range using `UltrasonicArray` with pigpio daemon (if supported by installed OS). Camera:
+9. **Four HC-SR04 units and camera, each separately.** Count is confirmed as FOUR. Assign four unique Pi BCM TRIG/ECHO pairs only after documenting physical mounting. Fit FOUR independent ECHO dividers, measure each ~3.0V high with meter, keep Pi GPIO disconnected until then. Verify one sensor at a time via `UltrasonicArray.from_config()`; round-robin testing uses >=60ms ping separation (about <=4Hz/sensor) to limit cross-talk, not 20Hz per sensor. Pi OS/driver compatibility is still unverified. Camera:
    ```bash
    rpicam-hello --list-cameras
    ```
@@ -83,7 +83,7 @@ All tests below are planned. **PROPOSED: verify pinmap and assembly before flash
 13. **E-stop — DANGEROUS when powered.** Open normally-closed hardware contact, verify all four motor VM feeds drop and GPIO E-stop latches. Wire-break must be detected. Manual switch release alone must NOT rearm.
     **PASS:** power cut without relying on Pi/USB and explicit rearm required.
 
-14. **RC override, closed-loop speed, then ground test.** Confirm iBUS RX model/levels and kill mapping before enabling; tune PID and max acceleration per wheel, start 1 motor then 4 motors on stands.
+14. **Smartphone UI / closed-loop speed / ground test.** Phone uses an authenticated Pi-only local web endpoint (see `docs/smartphone_control.md`), NEVER iBUS. Verify manual STOP and loss of Wi-Fi/phone input with **motor power disconnected first**. Enable drive only after speed limits, motor supply, E-stop, current sense and timeout are physically qualified. Tune PID on stands, then start low-speed ground trials.
     **PASS:** no unsafe overspeed/stall/overcurrent; only then controlled low-speed ground run.
 
 **Systemd (only after reviewed service path and username):**
