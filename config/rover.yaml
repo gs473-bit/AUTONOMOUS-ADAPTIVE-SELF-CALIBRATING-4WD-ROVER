@@ -28,18 +28,20 @@ motors:
   count_target: 4
   rated_voltage_v: 12.0
   no_load_speed_rpm_claimed: 60
-  gearbox_ratio: null # TODO actual motor variant
+  gearbox_ratio: null # TODO exact 60RPM variant: earlier generic Tronsun 26:1 is 231RPM, NOT verified for this motor
   stall_current_a: null # TODO
 encoders:
   type: Hall quadrature A/B
-  counts_per_wheel_revolution: null # TODO after quadrature and gearbox
+  counts_per_wheel_revolution: null # TODO measured output x4 counts; '11 signals/motor turn' alone does not determine count without exact gearbox + convention
   gpio_pins: null # TODO confirm pinmap
 sensors:
   imu_model: MPU6050 GY-521
   imu_bus: raspberry_pi_i2c1
   imu_i2c_address: 104 # likely 0x68, verify physically with i2cdetect
   ultrasonic_model: HC-SR04
-  ultrasonic_count: null # TODO number and pin pairs
+  ultrasonic_count: 4 # confirmed by user
+  ultrasonic_gpio_pairs: null # TODO four unique (TRIG, ECHO) BCM pairs, validate against actual wiring
+  ultrasonic_mount_positions: null # TODO four positions/orientations; do not assume
   ultrasonic_bus: raspberry_pi_gpio_pigpio
   ultrasonic_echo_level_shifted: false # TODO physical validation
 mecanum:
@@ -57,6 +59,7 @@ power:
   label_min_voltage_v: 9.2
   label_max_voltage_v: 12.6
   label_current_a: 4.0
+  continuous_discharge_current_a: 4.0 # user-confirmed; total battery load must remain within this rating
   capacity_ah: 4.0
   pack_low_threshold_v: null # TODO manufacturer BMS
   pack_critical_threshold_v: null # TODO manufacturer BMS
@@ -74,8 +77,12 @@ uart:
   fallback_path: /dev/ttyACM0
   type: Nucleo ST-LINK/V2-1 USB VCP
   baud_rate: 115200
-rc:
-  transmitter: FlySky FS-i6S
-  receiver: null # TODO actual model, likely FS-iA6B
-  owner: null # recommend Nucleo for independent RC kill
-  ibus_gpio_voltage: null # TODO verify
+remote_control:
+  type: smartphone_web
+  owner: raspberry_pi
+  transport: local_wifi_https_or_private_network # require secure link for motion
+  active_by_default: false # manual ARM deliberately disabled until hardware commissioning
+  auth_token: null # configured from environment, never committed
+  max_vx_m_s: null # TODO safe tested manual velocity limit
+  max_vy_m_s: null # TODO safe tested lateral velocity limit
+  max_wz_rad_s: null # TODO safe tested turn rate
