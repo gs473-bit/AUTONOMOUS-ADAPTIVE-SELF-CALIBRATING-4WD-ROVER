@@ -77,34 +77,27 @@ The Raspberry Pi 4B is intended to act as the central computing host for vision,
 ## System Architecture
 
 ```text
-                   ┌─────────────────────────┐
-                   │     Camera Module       │
-                   └────────────┬────────────┘
-                                │ image frames
-┌────────────────┐              ▼
-│ HC-SR04 Range  │───┐  ┌─────────────────────┐
-└────────────────┘   │  │                     │
-                     ├─►│   Raspberry Pi 4B   │
-┌────────────────┐   │  │                     │
-│ MPU6050 IMU    │───┤  │ Vision / Mapping    │
-└────────────────┘   │  │ Path Planning       │
-                     │  │ Sensor Processing   │
-┌────────────────┐   │  │ Control / Telemetry │
-│ Wheel Encoders │───┘  └──────────┬──────────┘
-└────────────────┘                 │
-                                   ▼
-                         ┌───────────────────┐
-                         │ 4 × DRV8876 Drivers │
-                         └─────────┬─────────┘
-                                   ▼
-                         ┌───────────────────┐
-                         │ 4 DC Gear Motors  │
-                         └───────────────────┘
-
-        Smartphone ───── Wi-Fi ───── Raspberry Pi
+Smartphone (authenticated HTTPS/VPN on private network)
+       |
+  Wi-Fi to Raspberry Pi 4B
+       |--- GY-521 / MPU6050 (Pi I²C)
+       |--- HC-SR04 x4 (Pi GPIO; FOUR protected 3.3V ECHO inputs)
+       |--- Raspberry Pi Camera (CSI)
+       |--- Pi sensor fusion, mapping, planning and web UI
+       |
+       +--- ST-LINK USB VCP 115200 -> NUCLEO-F303RE
+                                      |
+                                      +-- 4 independent PWM / PH / nSLEEP
+                                      |    -> four Pololu DRV8876 carriers
+                                      |    -> four 12V 60RPM DC gear motors
+                                      +-- four quadrature encoder timers
+                                      +-- 4 current sense + battery ADC
+                                      +-- hardware E-stop sense + local watchdog
 ```
 
-This is a conceptual architecture. Actual pin assignments, voltage levels, camera interface compatibility, driver wiring, and power requirements must be confirmed against the exact hardware selected before connection.
+The motor power path is separate: a 3S2P 12V nominal/4000mAh NMC battery, **4A continuous pack limit**, fuse and physical E-stop cut supply to all four driver carriers. **The Raspberry Pi must never directly drive motor PWM.**
+
+Phone release/loss causes software STOP/command expiry, while the STM32 enforces its own 200ms lease and nSLEEP shutdown. A physical E-stop must cut motor power independently of both devices. This remains an unverified design; motors are compile-disabled until electrical commissioning.
 
 ## Planned Features
 
@@ -162,13 +155,13 @@ The following list reflects the current project concept. Exact models, quantitie
 | Raspberry Pi 4B | Main embedded computer | Selected in project architecture |
 | Camera module | Image acquisition for mapping | Exact module and Pi interface compatibility must be confirmed |
 | OV7670 VGA camera | Candidate camera module | Do not assume direct compatibility with Raspberry Pi without verifying the interface and driver path |
-| 4 × DRV8876 motor driver boards | Four motor channels across two boards | Current, voltage drop, and thermal performance require validation |
+| 4 × Pololu DRV8876 #4037 carriers | Four separate FL/FR/RL/RR motor channels controlled by STM32 | nSLEEP, fault, IPROPI and current limits require validation |
 | 4 × DC gear motors | Independent 4WD actuation | Motor voltage, stall current, gearing, and encoder availability to be confirmed |
-| HC-SR04 ultrasonic sensor(s) | Short-range distance measurement | Quantity and mounting positions to be confirmed |
+| 4 × HC-SR04 ultrasonics | Pi GPIO obstacle ranges | Quantity confirmed; each ECHO needs 3.3V protection, pin pairs/mounting TODO |
 | MPU6050 | Inertial measurements | I²C configuration and calibration required |
 | Wheel encoder / magnetic or IR sensors | Wheel motion feedback | Exact encoder design and pulses per revolution to be confirmed |
 | 9 g servo | Proposed mechanical/sensor actuation | Final role and power needs to be confirmed |
-| Battery | Rover power source | Voltage, chemistry, capacity, current capability, and protection to be selected |
+| Wattnine 3S2P Li-ion NMC battery | 12V nominal, 4000mAh; 4A continuous | Confirm BMS peak current, fuse, undervoltage thresholds, barrel connector polarity |
 | Buck converter | Regulated logic supply | Must be rated for the Pi and all attached peripherals |
 | Physical emergency stop | Hardware-level motor shutdown | Implementation and wiring must be verified |
 
