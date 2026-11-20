@@ -75,7 +75,7 @@ static void status_packet(void){
  p.payload[52]=(uint8_t)safety.state;
  uint32_t f=faults.active_flags;
  for(unsigned i=0;i<4u;i++)p.payload[53+i]=(uint8_t)(f>>(8u*i));
- p.payload[57]=safety.rc_active? (safety.rc_signal_valid?1u:2u):0u;
+ p.payload[57]=0u;/* protocol-v1 legacy RC field reserved zero */
  /* Validity mask remains zero unless ADC + encoder hardware was accepted. */
  (void)uart_link_queue(&link,&p);
 }
@@ -115,10 +115,10 @@ static void process(const packet_t *p,uint32_t now){
   queue_ack(PKT_ACK,p->sequence,0u);break;
  }
  case PKT_SET_MODE:
-  if(p->length!=1u || p->payload[0]>2u || safety.state!=STATE_DISARMED){
+  if(p->length!=1u || p->payload[0]>1u || safety.state!=STATE_DISARMED){
    queue_ack(PKT_NACK,p->sequence,2u);break;
   }
-  mode=p->payload[0];safety.rc_active=(uint8_t)(mode==2u);
+  mode=p->payload[0];/* 0 manual smartphone, 1 autonomous; no RC receiver */
   queue_ack(PKT_ACK,p->sequence,0u);break;
  case PKT_CLEAR_ESTOP:
   if(p->length || !hw_ready || !estop_rearm(&estop,now)){

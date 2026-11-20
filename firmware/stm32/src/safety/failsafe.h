@@ -5,7 +5,6 @@ typedef enum {STATE_BOOT,STATE_SELF_TEST,STATE_DISARMED,STATE_ARMED,STATE_RUNNIN
 typedef struct {
  rover_state_t state;uint32_t last_valid_ms,last_drive_ms;uint32_t fault_flags;
  uint8_t selftest_pass,hardware_interlock,estop_released,estop_latched,heartbeat_seen,outputs_enabled;
- uint8_t rc_active,rc_signal_valid;
 } failsafe_t;
 void failsafe_init(failsafe_t *s);
 void failsafe_begin_selftest(failsafe_t *s);
